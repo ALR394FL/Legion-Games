@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>American Legion - Game Hub</title>
+    <style>
+        :root {
+            --primary: #0a2540;
+            --secondary: #d4af37;
+            --light: #0f172a;
+            --card-bg: #1e293b;
+            --text: #fff;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Arial Black', Arial, sans-serif;
+            background-color: var(--light);
+            color: var(--text);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 42px;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            color: #fff;
+            text-transform: uppercase;
+        }
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 18px;
+            margin-bottom: 5px;
+            font-family: Arial, sans-serif;
+        }
+        
+        /* Game Hub Grid Layout */
+        .launcher-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-top: 40px;
+        }
+        
+        /* Interactive Game Tiles */
+        .game-card {
+            background-color: var(--card-bg);
+            border: 3px solid #334155;
+            border-radius: 12px;
+            padding: 35px 25px;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 320px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* Dynamic Glow Effects on Hover */
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(212,175,55,0.2);
+        }
+        .game-card.money:hover { border-color: #22c55e; }
+        .game-card.steak:hover { border-color: var(--secondary); }
+        .game-card.bingo:hover { border-color: #3b82f6; }
+        
+        .game-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+        }
+        
+        .game-title {
+            font-size: 24px;
+            margin: 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .game-desc {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 25px;
+            height: 60px;
+        }
+        
+        .launch-btn {
+            background-color: #334155;
+            color: #fff;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background 0.2s ease;
+            width: 100%;
+        }
+        
+        .game-card.money:hover .launch-btn { background-color: #22c55e; color: #000; }
+        .game-card.steak:hover .launch-btn { background-color: var(--secondary); color: #000; }
+        .game-card.bingo:hover .launch-btn { background-color: #3b82f6; color: #fff; }
+
+        /* Responsive Breakpoints for Mobile Screens */
+        @media (max-width: 900px) {
+            .launcher-grid { grid-template-columns: 1fr; gap: 20px; }
+            body { padding: 20px 10px; }
+            h1 { font-size: 32px; }
+            .game-card { min-height: auto; padding: 25px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <p class="subtitle">American Legion Post Dashboard</p>
+    <h1>Game Night Control Hub</h1>
+    
+    <div class="launcher-grid">
+        
+        <!-- Game 1: Show Me The Money -->
+        <a href="./show-me-the-money/" class="game-card money">
+            <div>
+                <div class="game-icon">💵</div>
+                <div class="game-title">Show Me The Money</div>
+                <div class="game-desc">Continuous card drawing matrix engine featuring localized automated ticket pot metrics and layout tracking.</div>
+            </div>
+            <div class="launch-btn">Launch Game</div>
+        </a>
+        
+        <!-- Game 2: Steak Shoot -->
+        <a href="./steak-shoot/" class="game-card steak">
+            <div>
+                <div class="game-icon">🥩</div>
+                <div class="game-title">Steak Shoot</div>
+                <div class="game-desc">Clean prize card matrix dashboard stripped of financial tallies for quick distribution tracking loops.</div>
+            </div>
+            <div class="launch-btn">Launch Board</div>
+        </a>
+        
+        <!-- Game 3: Bingo Master Board -->
+        <a href="./bingo-master-board/" class="game-card bingo">
+            <div>
+                <div class="game-icon">🎱</div>
+                <div class="game-title">Bingo Master</div>
+                <div class="game-desc">Full room randomized drawing tracker panel featuring direct mathematical path audio file hooks.</div>
+            </div>
+            <div class="launch-btn">Open Board</div>
+        </a>
+        
+    </div>
+</div>
+
+</body>
+</html>
