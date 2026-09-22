@@ -43,7 +43,7 @@
         </select>
         <button onclick="startGame()">Start New Shoot</button>
     </div>
-    <div class="controls"><button id="drawBtn" onclick="drawNextCard()" disabled>Draw Card</button><button id="resetBtn" onclick="resetBoard()" style="background-color: #475569; color: white;">Reset</button></div>
+    <div class="controls"><button id="drawBtn" onclick="drawNextCard()" disabled>Draw Card</button><button id="fullscreenBtn" onclick="toggleFullscreen()" style="background-color: #3b82f6; color: white;">Full Screen</button><button id="resetBtn" onclick="resetBoard()" style="background-color: #475569; color: white;">Reset</button></div>
 </div>
 <div class="grid-container" id="matrixBoard"></div>
 <script>
@@ -51,6 +51,34 @@
     const suits = [{ name:'Spades', icon:'♠', code:'s', class:'black' }, { name:'Hearts', icon:'♥', code:'h', class:'red' }, { name:'Diamonds', icon:'♦', code:'d', class:'red' }, { name:'Clubs', icon:'♣', code:'c', class:'black' }];
     const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
     const speechNames = { 'J': 'Jack', 'Q': 'Queen', 'K': 'King', 'A': 'Ace' };
+
+        // --- UNIFIED FULLSCREEN TOGGLE ENGINE ---
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            // Request full screen on the document body to expand everything cleanly
+            document.documentElement.requestFullscreen().then(() => {
+                document.getElementById('fullscreenBtn').innerText = "Exit Full Screen";
+                document.getElementById('fullscreenBtn').style.backgroundColor = "#ef4444";
+            }).catch(err => {
+                console.error(`Error enabling fullscreen: ${err.message}`);
+            });
+        } else {
+            // Exit fullscreen if already active
+            document.exitFullscreen().then(() => {
+                document.getElementById('fullscreenBtn').innerText = "Full Screen";
+                document.getElementById('fullscreenBtn').style.backgroundColor = "#3b82f6";
+            });
+        }
+    }
+
+    // Optional: Listen for the escape key to reset the button text/color automatically
+    document.addEventListener('fullscreenchange', () => {
+        const fsBtn = document.getElementById('fullscreenBtn');
+        if (!document.fullscreenElement && fsBtn) {
+            fsBtn.innerText = "Full Screen";
+            fsBtn.style.backgroundColor = "#3b82f6";
+        }
+    });
 
     function buildMatrixSkeleton() {
         const board = document.getElementById('matrixBoard'); board.innerHTML = '';
