@@ -432,7 +432,17 @@
         <!--End-->
       </div>
 
-      <div id="settingsSlide">
+<div id="settingsSlide" style="position: relative;"> <!-- Added relative positioning here -->
+        
+        <!-- FLOATING VOICE MODE OPTION (Takes up 0px of vertical layout space) -->
+        <div style="position: absolute; top: 15px; left: 25px; z-index: 100; text-align: right; font-family: sans-serif;">
+          <label for="voiceModeSelect" style="color: white; font-size: 11px; font-weight: bold; display: block; margin-bottom: 3px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px;">Voice Announcement</label>
+          <select id="voiceModeSelect" onchange="updateVoiceMode(this.value)" style="padding: 3px 6px; font-size: 12px; background: rgba(0,0,0,0.6); color: white; border: 1px solid #777; border-radius: 4px; cursor: pointer; outline: none;">
+            <option value="auto">Auto (Audio ➔ TTS)</option>
+            <option value="tts">Force TTS Voice</option>
+          </select>
+        </div>
+
         <h2>Themes</h2>
         <div class="helpContent">
           <div class="flexCenter">
@@ -447,6 +457,7 @@
                 <span class="themeColor" id="blue" onclick="changeBackgroundColor('blue');">Blue</span>
                 <span class="themeColor" id="purple" onclick="changeBackgroundColor('purple');">Purple</span>
               </p>
+              
               <p><strong>Bingo Numbers</strong></p>
               <p style="display:flex;justify-content:center;">
                 <span id="bingoStyleBall" onclick="changeBingoStyle('ball');">

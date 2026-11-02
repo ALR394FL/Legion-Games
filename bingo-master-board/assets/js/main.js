@@ -13,7 +13,8 @@ let saveData = {
   ballsDrawnRemaining: "drawn",
   hiddenBingoLetters: [],
   winningPattern: [],
-  firstRun: 0
+  firstRun: 0,
+  voiceMode: "tts" // <-- ADDED: Default voice fallback profile
 }
 
 if(supportsLocalStorage) {
@@ -123,6 +124,9 @@ function show(elementName, display) {
 		document.getElementById("drawBallLayer").style.display = "block";
 		document.getElementById("fullScreenToggle").classList.add("fullScreenToggleSmall");
 		document.getElementById("homeButton").style.display = "block";
+    if(document.getElementById("voiceModeSelect")) {
+      document.getElementById("voiceModeSelect").value = saveData.voiceMode;
+    }
     if (loadedMasterBoard === false) {
       setUpMasterBoard();
       loadedMasterBoard = true;
@@ -144,6 +148,7 @@ function show(elementName, display) {
         else if (e.keyCode === 86) {toggleBallsDrawnRemaining('toggle');}
         else if (e.keyCode === 72) {hide('masterBoardSlide');show('titleSlide');}
         else if (e.keyCode === 70) {toggleFullScreen();}
+        else if (e.keyCode === 77) {toggleVoiceModeKeyboard();} // <-- ADDED: 'M' Key toggles manual voice modes
       }
     }
 	}
@@ -858,9 +863,7 @@ function playBingoVoiceCall(ballNumber) {
     // 3. Match your path style: audio/[LETTER]/[LETTER][number].m4a
     const valuePath = `audio/${letter}/${letter}${ballNumber}.m4a`;
 
-    audioValue = new Audio(valuePath);
-
-    // Backup safety rule: if an m4a track is missing, speak it via Text-to-Speech instead
+    // 4. Fallback execution method
     const runFallback = () => {
         if ('speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(`${letter}, ${ballNumber}`);
@@ -869,10 +872,43 @@ function playBingoVoiceCall(ballNumber) {
         }
     };
 
-    audioValue.onerror = function() {
-        console.warn(`Missing file path: ${valuePath}. Activating TTS.`);
-        runFallback();
-    };
+    // 5. Evaluate the manual Voice Mode setting
+    const currentMode = saveData.voiceMode;
 
-    audioValue.play().catch(() => { runFallback(); });
+    if (currentMode === "tts") {
+        // Mode 1: Force Text-to-Speech directly
+        runFallback();
+    } else {
+        // Mode 2: Auto (Your original mixed fallback rule: try audio first, TTS if missing)
+        audioValue = new Audio(valuePath);
+
+        audioValue.onerror = function() {
+            console.warn(`Missing file path: ${valuePath}. Activating TTS.`);
+            runFallback();
+        };
+        audioValue.play().catch(() => { runFallback(); });
+    }
 }
+
+// Function called by 'M' Key or your HTML Select manual changes
+function updateVoiceMode(newMode) {
+  saveData.voiceMode = newMode;
+  save(); // Commits choice instantly to localStorage safely
+  if(document.getElementById("voiceModeSelect")) {
+    document.getElementById("voiceModeSelect").value = newMode;
+  }
+}
+
+// Cycles strictly between the 2 choices when pressing 'M' on the keyboard
+function toggleVoiceModeKeyboard() {
+  // If it's currently auto, switch to tts. 
+  // If it's anything else (including the old "audio" mode), force it back to auto.
+  if (saveData.voiceMode === "auto") {
+    updateVoiceMode("tts");
+  } else {
+    updateVoiceMode("auto");
+  }
+}
+
+
+
