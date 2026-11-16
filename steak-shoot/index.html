@@ -113,6 +113,7 @@
     }
 
     function startGame() {
+        localStorage.removeItem('steakShootState');
         initDeck(); buildMatrixSkeleton();
         document.getElementById('drawBtn').disabled = false;
         document.getElementById('setupPanel').style.opacity = "0.4";
@@ -180,10 +181,12 @@
         cardElement.innerHTML = `<div class="card-val">${lastDrawnCard.val}</div><div class="card-suit">${lastDrawnCard.suitIcon}</div>`;
         targetCell.innerHTML = ''; targetCell.appendChild(cardElement);
         playAudioCall(lastDrawnCard);
+        saveGameState();
         if (window.innerWidth <= 768) targetCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function resetBoard() {
+        localStorage.removeItem('steakShootState');
         if (audioValue) audioValue.pause(); if (audioSuit) audioSuit.pause();
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
         document.getElementById('drawBtn').disabled = true; document.getElementById('setupPanel').style.opacity = "1";
@@ -196,7 +199,50 @@
             if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
         }
     });
-    buildMatrixSkeleton();
+    
+    function saveGameState() {
+        const state = {
+            deck: deck,
+            lastDrawnCard: lastDrawnCard,
+            drawnCards: []
+        };
+        document.querySelectorAll('.grid-cell .card-slot').forEach(slot => {
+            const cellId = slot.parentElement.id;
+            state.drawnCards.push({
+                cellId: cellId,
+                html: slot.outerHTML,
+                isLast: slot.classList.contains('last-drawn-active')
+            });
+        });
+        localStorage.setItem('steakShootState', JSON.stringify(state));
+    }
+
+    function loadGameState() {
+        const saved = localStorage.getItem('steakShootState');
+        if (!saved) return false;
+
+        const state = JSON.parse(saved);
+        if (!state.drawnCards || state.drawnCards.length === 0) return false;
+
+        deck = state.deck;
+        lastDrawnCard = state.lastDrawnCard;
+        buildMatrixSkeleton();
+
+        state.drawnCards.forEach(item => {
+            const cell = document.getElementById(item.cellId);
+            if (cell) {
+                cell.innerHTML = item.html;
+            }
+        });
+
+        document.getElementById('drawBtn').disabled = (deck.length === 0);
+        document.getElementById('setupPanel').style.opacity = "0.4";
+        return true;
+    }
+    
+    if (!loadGameState()) {
+        buildMatrixSkeleton();
+    }
 </script>
 </body>
 </html>
