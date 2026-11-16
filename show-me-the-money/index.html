@@ -127,11 +127,33 @@
         document.getElementById('setupPanel').style.opacity = "0.4";
     }
 
-    function triggerTTSFallback(card) {
+    async function triggerTTSFallback(card) {
+        const spokenVal = speechNames[card.val] || card.val;
+        const textToSpeak = `${spokenVal} of ${card.suitName}`;
+
+        // 1. Use Native Android TTS when running inside the Capacitor APK
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.TextToSpeech) {
+            try {
+                await window.Capacitor.Plugins.TextToSpeech.stop();
+                await window.Capacitor.Plugins.TextToSpeech.speak({
+                    text: textToSpeak,
+                    lang: 'en-US',
+                    rate: 0.9,
+                    pitch: 1.0,
+                    volume: 1.0
+                });
+                return;
+            } catch (err) {
+                console.error('Native TTS error:', err);
+            }
+        }
+
+        // 2. Fallback to standard browser speech when testing on your laptop
         if ('speechSynthesis' in window) {
-            const spokenVal = speechNames[card.val] || card.val;
-            const fallback = new SpeechSynthesisUtterance(`${spokenVal} of ${card.suitName}`);
-            fallback.rate = 0.9; window.speechSynthesis.speak(fallback);
+            window.speechSynthesis.cancel();
+            const fallback = new SpeechSynthesisUtterance(textToSpeak);
+            fallback.rate = 0.9;
+            window.speechSynthesis.speak(fallback);
         }
     }
 
