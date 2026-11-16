@@ -424,8 +424,17 @@ function getBallsRemaining() {
   }
   return numbersAvailable;
 }
+let lastBallTime = 0;
+const BALL_COOLDOWN_MS = 3000;
+
 
 function randomDraw() {
+    const now = Date.now();
+  if (now - lastBallTime < BALL_COOLDOWN_MS) {
+    return; // Ignores double-clicks
+  }
+  lastBallTime = now;
+
   if (getBallsRemaining().length === 0) {
     document.getElementById("drawBallDiv").style.transform = "rotate(15deg)";
     setTimeout(() => {
