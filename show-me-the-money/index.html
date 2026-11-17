@@ -46,6 +46,32 @@
           to { box-shadow: 0 0 35px #ffea00, 0 12px 30px rgba(0,0,0,0.9); }
         }
         @media (max-width: 768px) { body { overflow: auto; height: auto; } .header-panel { flex-direction: column; align-items: stretch; text-align: center; } .setup-panel, .stats-row, .controls { justify-content: center; } .grid-container { grid-template-columns: repeat(4, 1fr); gap: 10px; } .grid-header, .row-label { display: none; } .grid-cell { min-height: 90px; aspect-ratio: 2/3; } .card-slot .card-val { font-size: 22px; } .card-slot .card-suit { font-size: 26px; } }
+        .split-wrapper { position: relative; display: inline-block; }
+        #splitsDrawer {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            background: #0f172a;
+            border: 2px solid #d4af37;
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.85);
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            white-space: nowrap;
+        }
+        #splitsDrawer.open {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
     </style>
 </head>
 <body>
@@ -63,16 +89,21 @@
         <div class="setup-panel" id="setupPanel">
             <label for="ticketCount" style="color: #94a3b8; font-size: 16px;">Tickets:</label>
             <input type="number" id="ticketCount" value="100" min="1">
-            <label for="splitSelect" style="color: #94a3b8; font-size: 16px;">Split:</label>
-            <select id="splitSelect">
-                <option value="0.70,0.20,0.10" selected>70 / 20 / 10</option>
-                <option value="0.50,0.40,0.10">50 / 40 / 10</option>
-                <option value="0.60,0.30,0.10">60 / 30 / 10</option>
-                <option value="0.50,0.30,0.20">50 / 30 / 20</option>
-                <option value="0.50,0.50,0.00">50 / 50 / 0</option>
-                <option value="0.75,0.25,0.00">75 / 25 / 0</option>
-                <option value="1.00,0.00,0.00">100% Winner</option>
-            </select>
+
+        <div class="split-wrapper">
+            <button type="button" id="splitsToggleBtn" onclick="toggleSplitsDrawer()" style="background-color:#334155; color:#fff; border:1px solid #475569;">
+                Splits (70/20/10) ▾
+            </button>
+            <div id="splitsDrawer">
+                <label for="pctWinner" style="color:#94a3b8; font-size:15px;">Win%:</label>
+                <input type="number" id="pctWinner" value="70" min="0" max="100" style="width:65px;" oninput="updateSplit('pctWinner')">
+                <label for="pctPost" style="color:#94a3b8; font-size:15px;">Post%:</label>
+                <input type="number" id="pctPost" value="20" min="0" max="100" style="width:65px;" oninput="updateSplit('pctPost')">
+                <label for="pctJackpot" style="color:#94a3b8; font-size:15px;">Jackpot%:</label>
+                <input type="number" id="pctJackpot" value="10" min="0" max="100" style="width:65px; border-color:#22c55e;" oninput="updateSplit('pctJackpot')">
+                <button type="button" onclick="toggleSplitsDrawer()" style="padding:6px 10px; font-size:14px;">Done</button>
+            </div>
+        </div>
 
             <select id="audioToggle">
                 <option value="tts" selected>Text to Speech</option>
@@ -140,16 +171,69 @@
         suits.forEach((suit, suitIndex) => { values.forEach((val, valIndex) => { deck.push({ val: val, suitIcon: suit.icon, suitName: suit.name, suitCode: suit.code, colorClass: suit.class, sIdx: suitIndex, vIdx: valIndex }); }); });
         for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
     }
+    const splitFields = ['pctWinner', 'pctPost', 'pctJackpot'];
+    let recentSplit = ['pctWinner', 'pctPost'];
+
+    function updateSplit(changedId) {
+        const el = document.getElementById(changedId);
+        let val = Math.max(0, Math.min(100, parseFloat(el.value) || 0));
+        el.value = val;
+
+        recentSplit = [changedId, ...recentSplit.filter(id => id !== changedId)].slice(0, 2);
+        const firstVal = parseFloat(document.getElementById(recentSplit[0]).value) || 0;
+        let secondVal = parseFloat(document.getElementById(recentSplit[1]).value) || 0;
+
+        if (firstVal + secondVal > 100) {
+            secondVal = 100 - firstVal;
+            document.getElementById(recentSplit[1]).value = secondVal;
+        }
+
+        const autoId = splitFields.find(id => !recentSplit.includes(id));
+        document.getElementById(autoId).value = Math.max(0, 100 - (firstVal + secondVal));
+
+        splitFields.forEach(id => {
+            document.getElementById(id).style.borderColor = (id === autoId) ? '#22c55e' : '#475569';
+        });
+
+        syncSplitButtonLabel();        
+    }
 
     function startGame() {
         localStorage.removeItem('showMeTheMoneyState');
         const tickets = parseInt(document.getElementById('ticketCount').value) || 0;
-        const [winPct, postPct, jackPct] = document.getElementById('splitSelect').value.split(',').map(Number);
-        const totalSales = tickets * 1;
+        const totalSales = Math.round(tickets * 1);
 
-        document.getElementById('statWinnerPool').innerText = `$${(totalSales * winPct).toFixed(2)}`;
-        document.getElementById('statTotalPot').innerText = `$${(totalSales * postPct).toFixed(2)}`;
-        document.getElementById('statJackpotPool').innerText = `$${(totalSales * jackPct).toFixed(2)}`;
+        const pcts = {
+            pctWinner: (parseFloat(document.getElementById('pctWinner').value) || 0) / 100,
+            pctPost: (parseFloat(document.getElementById('pctPost').value) || 0) / 100,
+            pctJackpot: (parseFloat(document.getElementById('pctJackpot').value) || 0) / 100
+        };
+
+        // Identify which 2 splits were user-set and which 1 is the auto-remainder
+        const autoId = splitFields.find(id => !recentSplit.includes(id));
+        const dollars = {};
+        let allocated = 0;
+
+        recentSplit.forEach(id => {
+            if (pcts[id] <= 0 || totalSales <= 0) {
+                dollars[id] = 0;
+            } else {
+                // Round to nearest whole dollar, minimum $1 if percentage > 0
+                dollars[id] = Math.max(1, Math.round(totalSales * pcts[id]));
+            }
+            allocated += dollars[id];
+        });
+
+        // Assign exact remaining whole dollars to the 3rd pool so total always matches
+        if (pcts[autoId] <= 0 || totalSales <= 0) {
+            dollars[autoId] = 0;
+        } else {
+            dollars[autoId] = Math.max(1, totalSales - allocated);
+        }
+
+        document.getElementById('statWinnerPool').innerText = `$${dollars.pctWinner}`;
+        document.getElementById('statTotalPot').innerText = `$${dollars.pctPost}`;
+        document.getElementById('statJackpotPool').innerText = `$${dollars.pctJackpot}`;
 
         initDeck(); buildMatrixSkeleton();
         document.getElementById('drawBtn').disabled = false;
@@ -229,9 +313,9 @@
         if (audioValue) audioValue.pause(); if (audioSuit) audioSuit.pause();
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
         document.getElementById('drawBtn').disabled = true; document.getElementById('setupPanel').style.opacity = "1";
-        document.getElementById('statWinnerPool').innerText = "$0.00";
-        document.getElementById('statTotalPot').innerText = "$0.00";
-        document.getElementById('statJackpotPool').innerText = "$0.00";
+        document.getElementById('statWinnerPool').innerText = "$0";
+        document.getElementById('statTotalPot').innerText = "$0";
+        document.getElementById('statJackpotPool').innerText = "$0";
 
         buildMatrixSkeleton();
     }
@@ -251,7 +335,10 @@
             post: document.getElementById('statTotalPot').innerText,
             jackpot: document.getElementById('statJackpotPool').innerText,
             tickets: document.getElementById('ticketCount').value,
-            split: document.getElementById('splitSelect').value,
+            pctWinner: document.getElementById('pctWinner').value,
+            pctPost: document.getElementById('pctPost').value,
+            pctJackpot: document.getElementById('pctJackpot').value,
+            recentSplit: recentSplit,
             drawnCards: []
         };
         document.querySelectorAll('.grid-cell .card-slot').forEach(slot => {
@@ -278,7 +365,17 @@
         if (state.post) document.getElementById('statTotalPot').innerText = state.post;
         if (state.jackpot) document.getElementById('statJackpotPool').innerText = state.jackpot;
         if (state.tickets) document.getElementById('ticketCount').value = state.tickets;
-        if (state.split) document.getElementById('splitSelect').value = state.split;
+        if (state.pctWinner !== undefined) document.getElementById('pctWinner').value = state.pctWinner;
+        if (state.pctPost !== undefined) document.getElementById('pctPost').value = state.pctPost;
+        if (state.pctJackpot !== undefined) document.getElementById('pctJackpot').value = state.pctJackpot;
+        if (state.recentSplit) {
+            recentSplit = state.recentSplit;
+            const autoId = splitFields.find(id => !recentSplit.includes(id));
+            splitFields.forEach(id => {
+                document.getElementById(id).style.borderColor = (id === autoId) ? '#22c55e' : '#475569';
+            });
+        }
+        syncSplitButtonLabel();
 
         buildMatrixSkeleton();
 
@@ -297,6 +394,26 @@
 
     if (!loadGameState()) {
         buildMatrixSkeleton();
+    }
+
+    function toggleSplitsDrawer() {
+        document.getElementById('splitsDrawer').classList.toggle('open');
+    }
+
+    // Close drawer automatically when clicking outside or pressing Start Game
+    document.addEventListener('click', (e) => {
+        const wrapper = document.querySelector('.split-wrapper');
+        const drawer = document.getElementById('splitsDrawer');
+        if (wrapper && drawer && !wrapper.contains(e.target)) {
+            drawer.classList.remove('open');
+        }
+    });
+
+    function syncSplitButtonLabel() {
+        const w = document.getElementById('pctWinner').value || 0;
+        const p = document.getElementById('pctPost').value || 0;
+        const j = document.getElementById('pctJackpot').value || 0;
+        document.getElementById('splitsToggleBtn').innerText = `Splits (${w}/${p}/${j}) ▾`;
     }
 
 </script>
