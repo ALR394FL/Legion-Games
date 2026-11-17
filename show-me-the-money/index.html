@@ -247,8 +247,11 @@
         const state = {
             deck: deck,
             lastDrawnCard: lastDrawnCard,
-            pot: document.getElementById('statTotalPot').innerText,
-            pool: document.getElementById('statWinnerPool').innerText,
+            winner: document.getElementById('statWinnerPool').innerText,
+            post: document.getElementById('statTotalPot').innerText,
+            jackpot: document.getElementById('statJackpotPool').innerText,
+            tickets: document.getElementById('ticketCount').value,
+            split: document.getElementById('splitSelect').value,
             drawnCards: []
         };
         document.querySelectorAll('.grid-cell .card-slot').forEach(slot => {
@@ -271,8 +274,12 @@
 
         deck = state.deck;
         lastDrawnCard = state.lastDrawnCard;
-        if (state.pot) document.getElementById('statTotalPot').innerText = state.pot;
-        if (state.pool) document.getElementById('statWinnerPool').innerText = state.pool;
+        if (state.winner) document.getElementById('statWinnerPool').innerText = state.winner;
+        if (state.post) document.getElementById('statTotalPot').innerText = state.post;
+        if (state.jackpot) document.getElementById('statJackpotPool').innerText = state.jackpot;
+        if (state.tickets) document.getElementById('ticketCount').value = state.tickets;
+        if (state.split) document.getElementById('splitSelect').value = state.split;
+
         buildMatrixSkeleton();
 
         state.drawnCards.forEach(item => {
