@@ -8,7 +8,8 @@
         :root { --primary: #0a2540; --secondary: #d4af37; --light: #0f172a; --dark: #fff; }
         * { box-sizing: border-box; }
         body { font-family: 'Arial Black', Arial, sans-serif; background-color: var(--light); color: var(--dark); margin: 0; padding: 10px; min-height: 100vh; display: flex; flex-direction: column; }
-        .header-panel { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: #1e293b; padding: 10px 20px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); gap: 10px; }
+        .header-panel { display: flex; flex-direction: column; background: #1e293b; padding: 10px 20px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); gap: 10px; }
+        .header-top, .header-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; width: 100%; }
         h1 { color: #fff; margin: 0; font-size: 24px; letter-spacing: 1px; }
         .setup-panel { display: flex; align-items: center; gap: 10px; }
         input, button, select { padding: 8px 12px; font-size: 16px; border-radius: 5px; border: 1px solid #475569; }
@@ -49,21 +50,43 @@
 </head>
 <body>
 <div class="header-panel">
-    <h1>SHOW ME THE MONEY</h1>
-    <div class="setup-panel" id="setupPanel">
-        <input type="number" id="ticketCount" value="100" min="1">
-        <select id="audioToggle">
-            <option value="tts" selected>Text to Speech</option>
-            <option value="file">Prerecorded Audio</option>
-        </select>
-       <button onclick="startGame()">Start Game</button>
+    <div class="header-top">
+        <h1>SHOW ME THE MONEY</h1>
+        <div class="stats-row">
+            <div class="stat-item">Winner:<span id="statWinnerPool">$0.00</span></div>
+            <div class="stat-item">Post:<span id="statTotalPot">$0.00</span></div>
+            <div class="stat-item">Jackpot:<span id="statJackpotPool">$0.00</span></div>
+        </div>
+
     </div>
-    <div class="stats-row"><div class="stat-item">Pot:<span id="statTotalPot">\$0.00</span></div><div class="stat-item">Pool:<span id="statWinnerPool">\$0.00</span></div></div>
-    <div class="controls">
-      <button id="drawBtn" onclick="drawNextCard()" disabled>Draw Card</button>
-      <button id="fullscreenBtn" onclick="toggleFullscreen()" style="background-color: #3b82f6; color: white;">Full Screen</button>
-      <button id="resetBtn" onclick="resetBoard()" style="background-color: #475569; color: white;">Reset</button>
-      <button onclick="window.location.href='../index.html'" style="background-color: #ef4444; color: white;">&#8962; Home</button>
+    <div class="header-bottom">
+        <div class="setup-panel" id="setupPanel">
+            <label for="ticketCount" style="color: #94a3b8; font-size: 16px;">Tickets:</label>
+            <input type="number" id="ticketCount" value="100" min="1">
+            <label for="splitSelect" style="color: #94a3b8; font-size: 16px;">Split:</label>
+            <select id="splitSelect">
+                <option value="0.70,0.20,0.10" selected>70 / 20 / 10</option>
+                <option value="0.50,0.40,0.10">50 / 40 / 10</option>
+                <option value="0.60,0.30,0.10">60 / 30 / 10</option>
+                <option value="0.50,0.30,0.20">50 / 30 / 20</option>
+                <option value="0.50,0.50,0.00">50 / 50 / 0</option>
+                <option value="0.75,0.25,0.00">75 / 25 / 0</option>
+                <option value="1.00,0.00,0.00">100% Winner</option>
+            </select>
+
+            <select id="audioToggle">
+                <option value="tts" selected>Text to Speech</option>
+                <option value="file">Prerecorded Audio</option>
+            </select>
+            <button onclick="startGame()">Start Game</button>
+        </div>
+
+        <div class="controls">
+            <button id="drawBtn" onclick="drawNextCard()" disabled>Draw Card</button>
+            <button id="fullscreenBtn" onclick="toggleFullscreen()" style="background-color: #3b82f6; color: white;">Full Screen</button>
+            <button id="resetBtn" onclick="resetBoard()" style="background-color: #475569; color: white;">Reset</button>
+            <button onclick="window.location.href='../index.html'" style="background-color: #ef4444; color: white;">&#8962; Home</button>
+        </div>
     </div>
 </div>
 <div class="grid-container" id="matrixBoard"></div>
@@ -121,12 +144,19 @@
     function startGame() {
         localStorage.removeItem('showMeTheMoneyState');
         const tickets = parseInt(document.getElementById('ticketCount').value) || 0;
-        document.getElementById('statTotalPot').innerText = `$${(tickets * 1).toFixed(2)}`;
-        document.getElementById('statWinnerPool').innerText = `$${(tickets * 0.5).toFixed(2)}`;
+        const [winPct, postPct, jackPct] = document.getElementById('splitSelect').value.split(',').map(Number);
+        const totalSales = tickets * 1;
+
+        document.getElementById('statWinnerPool').innerText = `$${(totalSales * winPct).toFixed(2)}`;
+        document.getElementById('statTotalPot').innerText = `$${(totalSales * postPct).toFixed(2)}`;
+        document.getElementById('statJackpotPool').innerText = `$${(totalSales * jackPct).toFixed(2)}`;
+
         initDeck(); buildMatrixSkeleton();
         document.getElementById('drawBtn').disabled = false;
         document.getElementById('setupPanel').style.opacity = "0.4";
+        saveGameState();
     }
+
 
     async function triggerTTSFallback(card) {
         const spokenVal = speechNames[card.val] || card.val;
@@ -199,7 +229,10 @@
         if (audioValue) audioValue.pause(); if (audioSuit) audioSuit.pause();
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
         document.getElementById('drawBtn').disabled = true; document.getElementById('setupPanel').style.opacity = "1";
-        document.getElementById('statTotalPot').innerText = "\$0.00"; document.getElementById('statWinnerPool').innerText = "\$0.00";
+        document.getElementById('statWinnerPool').innerText = "$0.00";
+        document.getElementById('statTotalPot').innerText = "$0.00";
+        document.getElementById('statJackpotPool').innerText = "$0.00";
+
         buildMatrixSkeleton();
     }
 
@@ -214,6 +247,8 @@
         const state = {
             deck: deck,
             lastDrawnCard: lastDrawnCard,
+            pot: document.getElementById('statTotalPot').innerText,
+            pool: document.getElementById('statWinnerPool').innerText,
             drawnCards: []
         };
         document.querySelectorAll('.grid-cell .card-slot').forEach(slot => {
@@ -236,6 +271,8 @@
 
         deck = state.deck;
         lastDrawnCard = state.lastDrawnCard;
+        if (state.pot) document.getElementById('statTotalPot').innerText = state.pot;
+        if (state.pool) document.getElementById('statWinnerPool').innerText = state.pool;
         buildMatrixSkeleton();
 
         state.drawnCards.forEach(item => {
