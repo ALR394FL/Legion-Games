@@ -6,6 +6,7 @@ A browser-based, 100% offline-capable 3-game arcade launcher built for large-scr
 * **Play Online (GitHub Pages):** Open [https://alr394fl.github.io/Legion-Games/index.html](hhttps://alr394fl.github.io/Legion-Games/index.html) directly in any modern web browser (Chrome, Edge, Firefox, Safari) with zero setup required.
 * **Play Offline Locally:** Clone or download this repository as a ZIP file and open `index.html` directly in your browser.
 * **Play on Android TV (Offline Kiosk APK):** Install the compiled Capacitor Android APK (see the build guide below) to run all three games 100% offline without an internet connection.
+* **Download Precompiled Android TV APK:** Grab the latest `.apk` directly from the [Releases page](https://github.com/ALR394FL/Legion-Games/releases/latest) and sideload it onto your Android TV box.
 
 ## Included Games
 * **Bingo Master Board:** Full-featured Bingo caller and master board (forked from Timothy Hsu's *Bingo Master Board*, MIT License).
