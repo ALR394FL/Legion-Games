@@ -167,5 +167,28 @@
     </div>
 </div>
 
+<div id="appVersionBadge" style="position:fixed; bottom:12px; right:16px; color:#64748b; font-family:Arial, sans-serif; font-size:13px; letter-spacing:0.5px;">
+    Web Edition
+</div>
+
+<script>
+    (async function showAppVersion() {
+        const badge = document.getElementById('appVersionBadge');
+        if (!badge) return;
+
+        // Pulls versionName (e.g. "2.0.2") directly from Android APK metadata
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+            try {
+                const info = await window.Capacitor.Plugins.App.getInfo();
+                if (info && info.version) {
+                    badge.innerText = `APK v${info.version} (Build ${info.build})`;
+                }
+            } catch (err) {
+                console.warn('Could not read APK version:', err);
+            }
+        }
+    })();
+</script>
+
 </body>
 </html>
