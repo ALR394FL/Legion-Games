@@ -17,6 +17,8 @@ A browser-based, 100% offline-capable 3-game arcade launcher built for American 
 * **100% Offline Ready:** All HTML, CSS, JavaScript, and local state storage (`localStorage`) run completely offline with automatic mid-game recovery after a refresh or power cycle.
 * **TV & Mouse Friendly:** Large high-contrast UI, on-screen Home navigation, fullscreen toggle buttons, spacebar card drawing, and a 3-second draw cooldown to prevent accidental mouse double-clicks.
 * **Offline Text-to-Speech:** Supports native Android TTS (via `@capacitor-community/text-to-speech`) with automatic fallback to standard browser speech synthesis.
+* **Live APK Version Badge:** Automatically reads the compiled Android versionName and build number via @capacitor/app and displays it in the bottom corner of the main launcher screen.
+
 
 ---
 
@@ -35,7 +37,7 @@ mkdir -p ~/tv-arcade && cd ~/tv-arcade
 git clone https://github.com/ALR394FL/Legion-Games.git www
 
 npm init -y
-npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-community/text-to-speech
+npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-community/text-to-speech @capacitor/app 
 npx cap init "Arcade Games" "com.custom.arcadegames" --web-dir www
 npx cap add android
 ```
@@ -45,6 +47,8 @@ npx cap add android
   * Add `LEANBACK_LAUNCHER` category and `<uses-feature android:name="android.hardware.touchscreen" android:required="false" />` for Android TV compatibility.
   * Add `<queries>` intent for `android.intent.action.TTS_SERVICE` above `<application>` so Android 11+ allows binding to offline TTS engines.
 * **`MainActivity.java`:** Override `onBackPressed()` with an empty method so mouse right-clicks and hardware Back presses do not exit the app.
+* **Auto-Incrementing APK Versioning** (android/app/build.gradle): Uses a local android/app/version.properties counter (BUILD_NUMBER=1) to auto-increment versionCode and versionName (2.0.<build>), purge older .apk files, and output stamped Legion-Games-v2.0.<build>.apk builds.
+
 * **System Offline TTS Engine (Android TV / SlimBOX):** If your firmware does not include a built-in Text-to-Speech engine, sideload an offline TTS engine APK (for example, **Next-gen Kaldi / Sherpa-ONNX** was used in this setup, though other offline engines like RHVoice or eSpeak NG may work—*YMMV*) and set it as default via ADB:
   ```bash
   adb connect <YOUR_TV_IP>:5555
@@ -56,7 +60,7 @@ npx cap add android
 Whenever changes are pushed to GitHub later, pull the latest web files, sync Capacitor, compile the APK, and push it over Wi-Fi to the Android TV box:
 
 ```bash
-cd ~/tv-arcade/www && git pull && cd .. && npx cap sync android && cd android && ./gradlew assembleDebug && adb connect <YOUR_TV_IP>:5555 && adb install -r app/build/outputs/apk/debug/app-debug.apk
+cd ~/tv-arcade/www && git pull && cd .. && npx cap sync android && cd android && ./gradlew assembleDebug && adb connect <YOUR_TV_IP>:5555 && adb install -r app/build/outputs/apk/debug/Legion-Games-v*.apk
 ```
 
 ---
