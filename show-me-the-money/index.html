@@ -285,7 +285,7 @@
         }
     }
     let lastDrawTime = 0;
-    const DRAW_COOLDOWN_MS = 3000; // Ignores any second click within 0.65 seconds
+    const DRAW_COOLDOWN_MS = 3000; // Ignores any second click within 3.0 seconds
 
 
     function drawNextCard() {
@@ -322,10 +322,20 @@
 
     window.addEventListener('keydown', function(e) {
         if (e.code === 'Space' || e.keyCode === 32) {
+            // Ignore Spacebar if the user is currently typing inside an input box or dropdown
+            const activeTag = document.activeElement ? document.activeElement.tagName : '';
+            if (activeTag === 'INPUT' || activeTag === 'SELECT') {
+                return;
+            }
+
             const btn = document.getElementById('drawBtn');
-            if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
+            if (btn && !btn.disabled) {
+                e.preventDefault();
+                btn.click();
+            }
         }
     });
+
     
     function saveGameState() {
         const state = {
